@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POXOTB Music</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --border: #e8e8e8;
+            --text: #1a1a1a;
+            --text-dim: #888;
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .sakura-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url('https://i.ibb.co/GQ8dq3DW/image.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.06;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .decor-line {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+        .decor-line.top {
+            top: 0; left: 0; width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, #ccc, transparent);
+        }
+        .decor-line.bottom {
+            bottom: 0; left: 0; width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, #ccc, transparent);
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 50px 0 40px;
+            position: relative;
+        }
+        .header-badge {
+            display: inline-block;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 8px 22px;
+            border-radius: 50px;
+            font-size: 0.7em;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5em;
+            font-weight: 900;
+            letter-spacing: 8px;
+            color: #1a1a1a;
+            line-height: 1;
+        }
+        .header .sub {
+            font-size: 0.85em;
+            color: #999;
+            letter-spacing: 5px;
+            margin-top: 12px;
+            font-weight: 300;
+        }
+        .header::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 1px;
+            background: #1a1a1a;
+            margin: 25px auto 0;
+        }
+
+        /* Плеер */
+        .player-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.03);
+        }
+
+        .cover-wrap {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 25px;
+        }
+        .cover {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f8f8f8, #eee);
+            color: #1a1a1a;
+            border: 1px solid #e0e0e0;
+            position: relative;
+            z-index: 1;
+            background-size: cover;
+            background-position: center;
+            animation: rotateVinyl 20s linear infinite paused;
+        }
+        .cover.playing {
+            animation-play-state: running;
+        }
+        @keyframes rotateVinyl {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .cover-hole {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #fafafa;
+            border-radius: 50%;
+            border: 1px solid #e0e0e0;
+            z-index: 2;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .cover-hole::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #1a1a1a;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .now-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+        .now-artist {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .now-duration {
+            font-size: 0.8em;
+            color: #bbb;
+            margin-bottom: 20px;
+        }
+
+        .progress-wrap {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: #eee;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #1a1a1a;
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.15s linear;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+        .ctrl-btn {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #1a1a1a;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ctrl-btn:hover {
+            background: #f0f0f0;
+        }
+        .ctrl-btn.play-btn {
+            background: #1a1a1a;
+            color: #fff;
+            width: 65px;
+            height: 65px;
+            font-size: 1.8em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .ctrl-btn.play-btn:hover {
+            background: #333;
+            transform: scale(1.05);
+        }
+
+        .volume-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .volume-row input[type="range"] {
+            width: 100px;
+            accent-color: #1a1a1a;
+            height: 3px;
+        }
+        .vol-icon {
+            font-size: 0.9em;
+            color: #888;
+            cursor: pointer;
+        }
+
+        audio { display: none; }
+
+        /* Список треков */
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2em;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .track-list {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .track-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 24px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .track-item:last-child {
+            border-bottom: none;
+        }
+        .track-item:hover {
+            background: #fafafa;
+        }
+        .track-item.active {
+            background: #f5f5f5;
+        }
+        .track-num {
+            width: 28px;
+            font-size: 0.85em;
+            color: #bbb;
+            text-align: center;
+            flex-shrink: 0;
+            font-family: 'Playfair Display', serif;
+        }
+        .track-item.active .track-num {
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+        .track-cover-sm {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f5f5f5, #eee);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #1a1a1a;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .track-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .track-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 0.95em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .track-artist {
+            font-size: 0.78em;
+            color: #999;
+            margin-top: 3px;
+        }
+        .track-dur {
+            font-size: 0.8em;
+            color: #bbb;
+            flex-shrink: 0;
+        }
+        .track-eq {
+            display: none;
+            gap: 2px;
+            align-items: flex-end;
+            height: 16px;
+            flex-shrink: 0;
+        }
+        .track-item.active .track-eq {
+            display: flex;
+        }
+        .track-item.active .track-dur {
+            display: none;
+        }
+        .eq-bar {
+            width: 3px;
+            background: #1a1a1a;
+            border-radius: 1px;
+            animation: eqAnim 0.8s ease-in-out infinite;
+        }
+        .eq-bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+        .eq-bar:nth-child(2) { height: 14px; animation-delay: 0.2s; }
+        .eq-bar:nth-child(3) { height: 6px; animation-delay: 0.4s; }
+        .eq-bar:nth-child(4) { height: 12px; animation-delay: 0.6s; }
+        @keyframes eqAnim {
+            0%,100% { height: 8px; }
+            50% { height: 16px; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 70px 20px;
+            color: #ccc;
+        }
+        .empty-state .icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+        .empty-state p {
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            color: #bbb;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #ddd;
+            font-size: 0.75em;
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 2.2em; letter-spacing: 4px; }
+            .cover-wrap { width: 170px; height: 170px; }
+            .cover { font-size: 3.5em; }
+            .player-card { padding: 25px 18px; }
+            .controls { gap: 15px; }
+            .ctrl-btn.play-btn { width: 55px; height: 55px; font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sakura-bg"></div>
+<div class="decor-line top"></div>
+<div class="decor-line bottom"></div>
+
+<div class="content">
+    <div class="header">
+        <div class="header-badge">MUSIC</div>
+        <h1>POXOTB</h1>
+        <p class="sub">загружай и слушай</p>
+    </div>
+
+    <div class="player-card">
+        <div class="cover-wrap">
+            <div class="cover" id="nowCover">🎵</div>
+            <div class="cover-hole"></div>
+        </div>
+        <div class="now-title" id="nowTitle">Выбери трек</div>
+        <div class="now-artist" id="nowArtist">—</div>
+        <div class="now-duration" id="nowDuration"></div>
+
+        <div class="progress-wrap">
+            <div class="progress-bar" onclick="seek(event)">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="ctrl-btn" onclick="prevTrack()">⏮</button>
+            <button class="ctrl-btn play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+            <button class="ctrl-btn" onclick="nextTrack()">⏭</button>
+        </div>
+
+        <div class="volume-row">
+            <span class="vol-icon" onclick="muteToggle()">🔈</span>
+            <input type="range" id="volumeSlider" min="0" max="100" value="80" oninput="changeVolume(this.value)">
+            <span class="vol-icon">🔊</span>
+        </div>
+    </div>
+
+    <div class="section-title">ТРЕКИ</div>
+    <div class="track-list" id="trackList">
+        <div class="empty-state">
+            <div class="icon">🎵</div>
+            <p>Загрузка...</p>
+        </div>
+    </div>
+
+    <footer>
+        POXOTI_NETU © 2026
+    </footer>
+
+    <audio id="audio" ontimeupdate="updateProgress()" onended="nextTrack()" onloadedmetadata="updateMeta()"></audio>
+</div>
+
+<script>
+const SERVER_URL = 'https://ТВОЙ_RAILWAY_URL.railway.app';
+
+let tracks = [];
+let currentIndex = -1;
+let isPlaying = false;
+let prevVolume = 80;
+
+const audio = document.getElementById('audio');
+const playBtn = document.getElementById('playBtn');
+
+async function loadTracks() {
+    try {
+        const resp = await fetch(`${SERVER_URL}/api/tracks`);
+        const data = await resp.json();
+        tracks = data.tracks || [];
+        renderTracks();
+        if (tracks.length > 0) {
+            document.getElementById('nowTitle').textContent = tracks[0].title;
+            document.getElementById('nowArtist').textContent = tracks[0].artist;
+            updateCover(0);
+        }
+    } catch (e) {
+        document.getElementById('trackList').innerHTML = '<div class="empty-state"><div class="icon">🔌</div><p>Сервер недоступен</p></div>';
+    }
+}
+
+function playTrack(index) {
+    if (index < 0 || index >= tracks.length) return;
+    currentIndex = index;
+    const track = tracks[index];
+    audio.src = `${SERVER_URL}/music/${track.file}`;
+    audio.play();
+    isPlaying = true;
+    playBtn.textContent = '⏸';
+    document.getElementById('nowTitle').textContent = track.title;
+    document.getElementById('nowArtist').textContent = track.artist;
+    updateCover(index);
+    updateMeta();
+    renderTracks();
+    document.getElementById('nowCover').classList.add('playing');
+}
+
+function togglePlay() {
+    if (tracks.length === 0) return;
+    if (currentIndex === -1) { playTrack(0); return; }
+    if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+        playBtn.textContent = '▶';
+        document.getElementById('nowCover').classList.remove('playing');
+    } else {
+        audio.play();
+        isPlaying = true;
+        playBtn.textContent = '⏸';
+        document.getElementById('nowCover').classList.add('playing');
+    }
+}
+
+function nextTrack() {
+    if (tracks.length === 0) return;
+    let next = currentIndex + 1;
+    if (next >= tracks.length) next = 0;
+    playTrack(next);
+}
+
+function prevTrack() {
+    if (tracks.length === 0) return;
+    let prev = currentIndex - 1;
+    if (prev < 0) prev = tracks.length - 1;
+    playTrack(prev);
+}
+
+function updateMeta() {
+    if (currentIndex >= 0 && tracks[currentIndex]) {
+        if (!tracks[currentIndex].duration && audio.duration) {
+            tracks[currentIndex].duration = Math.floor(audio.duration);
+        }
+        document.getElementById('nowDuration').textContent = formatDuration(tracks[currentIndex].duration || Math.floor(audio.duration));
+    }
+}
+
+function updateProgress() {
+    const fill = document.getElementById('progressFill');
+    const pct = (audio.currentTime / audio.duration) * 100 || 0;
+    fill.style.width = pct + '%';
+}
+
+function seek(e) {
+    const rect = e.target.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = pct * audio.duration;
+}
+
+function changeVolume(val) {
+    audio.volume = val / 100;
+    prevVolume = val;
+}
+
+function muteToggle() {
+    if (audio.volume > 0) {
+        audio.volume = 0;
+        document.getElementById('volumeSlider').value = 0;
+    } else {
+        audio.volume = prevVolume / 100;
+        document.getElementById('volumeSlider').value = prevVolume;
+    }
+}
+
+function updateCover(index) {
+    const track = tracks[index];
+    const cover = document.getElementById('nowCover');
+
+    if (track.cover) {
+        cover.style.backgroundImage = `url(${SERVER_URL}/covers/${track.cover})`;
+        cover.style.backgroundSize = 'cover';
+        cover.style.backgroundPosition = 'center';
+        cover.textContent = '';
+    } else {
+        cover.style.backgroundImage = '';
+        cover.textContent = track.title.charAt(0).toUpperCase() || '🎵';
+    }
+}
+
+function renderTracks() {
+    const container = document.getElementById('trackList');
+    if (tracks.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">🎵</div><p>Пока нет треков</p><p style="font-size:0.75em;">Отправь MP3 боту в Telegram</p></div>';
+        return;
+    }
+    container.innerHTML = tracks.map((track, index) => {
+        const coverStyle = track.cover
+            ? `background-image:url(${SERVER_URL}/covers/${track.cover});background-size:cover;background-position:center;color:transparent`
+            : '';
+        const coverLetter = track.cover ? '' : (track.title.charAt(0).toUpperCase() || '🎵');
+        return `
+        <div class="track-item ${index === currentIndex && isPlaying ? 'active' : ''}" onclick="playTrack(${index})">
+            <div class="track-num">${index === currentIndex && isPlaying ? '' : String(index+1)}</div>
+            <div class="track-cover-sm" style="${coverStyle}">${coverLetter}</div>
+            <div class="track-info">
+                <div class="track-name">${track.title}</div>
+                <div class="track-artist">${track.artist}</div>
+            </div>
+            <div class="track-dur">${formatDuration(track.duration)}</div>
+            <div class="track-eq">
+                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function formatDuration(seconds) {
+    if (!seconds || seconds === 0) {
+        if (currentIndex >= 0 && tracks[currentIndex] && audio.duration) {
+            seconds = Math.floor(audio.duration);
+        } else {
+            return '--:--';
+        }
+    }
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+loadTracks();
+</script>
+</body>
+</html>
