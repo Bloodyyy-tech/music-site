@@ -86,8 +86,6 @@
             text-align: center;
             box-shadow: 0 2px 20px rgba(0,0,0,0.03);
         }
-
-        /* Обложка + волна */
         .cover-container {
             position: relative;
             width: 280px;
@@ -144,8 +142,6 @@
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
         }
-
-        /* Аудио-волна */
         .audio-wave {
             position: absolute;
             top: 50%; left: 50%;
@@ -156,7 +152,6 @@
             display: block;
             border-radius: 50%;
         }
-
         .now-title {
             font-family: 'Playfair Display', serif;
             font-size: 1.5em;
@@ -233,7 +228,6 @@
             height: 3px;
         }
         .vol-icon { font-size: 0.9em; color: #888; cursor: pointer; }
-        audio { display: none; }
         .section-title {
             font-family: 'Playfair Display', serif;
             font-size: 1.2em;
@@ -349,7 +343,6 @@
     </div>
 
     <div class="player-card">
-        <!-- Обложка + волна -->
         <div class="cover-container">
             <div class="audio-wave" id="audioWave">
                 <canvas id="waveCanvas" width="280" height="280"></canvas>
@@ -393,7 +386,7 @@
 
     <footer>POXOTI_NETU © 2026</footer>
 
-    <audio id="audio" ontimeupdate="updateProgress()" onended="nextTrack()" onloadedmetadata="updateMeta()"></audio>
+    <audio id="audio" crossorigin="anonymous" ontimeupdate="updateProgress()" onended="nextTrack()" onloadedmetadata="updateMeta()"></audio>
 </div>
 
 <script>
@@ -412,7 +405,6 @@ const playBtn = document.getElementById('playBtn');
 const waveCanvas = document.getElementById('waveCanvas');
 const waveCtx = waveCanvas.getContext('2d');
 
-// Инициализация аудио-контекста
 function initAudioContext() {
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -425,7 +417,6 @@ function initAudioContext() {
     }
 }
 
-// Рисование волны
 function drawWave() {
     if (!analyser) return;
     
@@ -435,13 +426,12 @@ function drawWave() {
     const dataArray = new Uint8Array(bufferLength);
     analyser.getByteFrequencyData(dataArray);
     
-    // Средняя громкость
     let sum = 0;
     for (let i = 0; i < bufferLength; i++) {
         sum += dataArray[i];
     }
     const avg = sum / bufferLength;
-    const intensity = avg / 255; // 0 до 1
+    const intensity = avg / 255;
     
     const cx = 140;
     const cy = 140;
@@ -450,16 +440,12 @@ function drawWave() {
     
     waveCtx.clearRect(0, 0, 280, 280);
     
-    // Рисуем круги-волны
     for (let ring = 0; ring < 3; ring++) {
         const ringOffset = ring * 12;
         const ringRadius = baseRadius + ringOffset + (intensity * maxWave * (1 - ring * 0.25));
         const ringAlpha = 0.15 - ring * 0.04;
         
         waveCtx.beginPath();
-        waveCtx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
-        
-        // Неровная волна по данным частот
         for (let angle = 0; angle < Math.PI * 2; angle += 0.1) {
             const idx = Math.floor((angle / (Math.PI * 2)) * bufferLength);
             const freqVal = dataArray[idx] / 255;
@@ -479,7 +465,6 @@ function drawWave() {
         waveCtx.stroke();
     }
     
-    // Главное кольцо — пульсирует с громкостью
     const mainRadius = baseRadius + intensity * maxWave;
     waveCtx.beginPath();
     waveCtx.arc(cx, cy, mainRadius, 0, Math.PI * 2);
@@ -487,7 +472,6 @@ function drawWave() {
     waveCtx.lineWidth = 2;
     waveCtx.stroke();
     
-    // Внутреннее кольцо
     waveCtx.beginPath();
     waveCtx.arc(cx, cy, baseRadius - 8 - intensity * 15, 0, Math.PI * 2);
     waveCtx.strokeStyle = `rgba(26,26,26,${0.12 + intensity * 0.2})`;
