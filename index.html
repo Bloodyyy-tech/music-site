@@ -86,11 +86,21 @@
             text-align: center;
             box-shadow: 0 2px 20px rgba(0,0,0,0.03);
         }
-        .cover-wrap {
+
+        /* Обложка + волна */
+        .cover-container {
             position: relative;
-            width: 220px;
-            height: 220px;
-            margin: 0 auto 25px;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 30px;
+        }
+        .cover-wrap {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            z-index: 2;
         }
         .cover {
             width: 100%;
@@ -101,7 +111,7 @@
             align-items: center;
             justify-content: center;
             font-family: 'Playfair Display', serif;
-            font-size: 5em;
+            font-size: 4.5em;
             font-weight: 900;
             background: linear-gradient(135deg, #f8f8f8, #eee);
             color: #1a1a1a;
@@ -117,29 +127,43 @@
         }
         .cover-hole {
             position: absolute;
-            width: 30px; height: 30px;
+            width: 28px; height: 28px;
             background: #fafafa;
             border-radius: 50%;
             border: 1px solid #e0e0e0;
-            z-index: 2;
+            z-index: 3;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
         }
         .cover-hole::after {
             content: '';
             position: absolute;
-            width: 8px; height: 8px;
+            width: 7px; height: 7px;
             background: #1a1a1a;
             border-radius: 50%;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
         }
+
+        /* Аудио-волна */
+        .audio-wave {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+        .audio-wave canvas {
+            display: block;
+            border-radius: 50%;
+        }
+
         .now-title {
             font-family: 'Playfair Display', serif;
             font-size: 1.5em;
             font-weight: 700;
             color: #1a1a1a;
             margin-bottom: 5px;
+            letter-spacing: 1px;
         }
         .now-artist {
             font-size: 0.9em;
@@ -304,7 +328,8 @@
         }
         @media (max-width: 600px) {
             .header h1 { font-size: 2.2em; letter-spacing: 4px; }
-            .cover-wrap { width: 170px; height: 170px; }
+            .cover-container { width: 240px; height: 240px; }
+            .cover-wrap { width: 160px; height: 160px; }
             .cover { font-size: 3.5em; }
             .player-card { padding: 25px 18px; }
             .controls { gap: 15px; }
@@ -324,10 +349,17 @@
     </div>
 
     <div class="player-card">
-        <div class="cover-wrap">
-            <div class="cover" id="nowCover">🎵</div>
-            <div class="cover-hole"></div>
+        <!-- Обложка + волна -->
+        <div class="cover-container">
+            <div class="audio-wave" id="audioWave">
+                <canvas id="waveCanvas" width="280" height="280"></canvas>
+            </div>
+            <div class="cover-wrap">
+                <div class="cover" id="nowCover">🎵</div>
+                <div class="cover-hole"></div>
+            </div>
         </div>
+
         <div class="now-title" id="nowTitle">Выбери трек</div>
         <div class="now-artist" id="nowArtist">—</div>
         <div class="now-duration" id="nowDuration"></div>
@@ -371,9 +403,97 @@ let tracks = [];
 let currentIndex = -1;
 let isPlaying = false;
 let prevVolume = 80;
+let audioContext = null;
+let analyser = null;
+let waveAnimationId = null;
 
 const audio = document.getElementById('audio');
 const playBtn = document.getElementById('playBtn');
+const waveCanvas = document.getElementById('waveCanvas');
+const waveCtx = waveCanvas.getContext('2d');
+
+// Инициализация аудио-контекста
+function initAudioContext() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
+        const source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+    }
+}
+
+// Рисование волны
+function drawWave() {
+    if (!analyser) return;
+    
+    waveAnimationId = requestAnimationFrame(drawWave);
+    
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    analyser.getByteFrequencyData(dataArray);
+    
+    // Средняя громкость
+    let sum = 0;
+    for (let i = 0; i < bufferLength; i++) {
+        sum += dataArray[i];
+    }
+    const avg = sum / bufferLength;
+    const intensity = avg / 255; // 0 до 1
+    
+    const cx = 140;
+    const cy = 140;
+    const baseRadius = 105;
+    const maxWave = 35;
+    
+    waveCtx.clearRect(0, 0, 280, 280);
+    
+    // Рисуем круги-волны
+    for (let ring = 0; ring < 3; ring++) {
+        const ringOffset = ring * 12;
+        const ringRadius = baseRadius + ringOffset + (intensity * maxWave * (1 - ring * 0.25));
+        const ringAlpha = 0.15 - ring * 0.04;
+        
+        waveCtx.beginPath();
+        waveCtx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+        
+        // Неровная волна по данным частот
+        for (let angle = 0; angle < Math.PI * 2; angle += 0.1) {
+            const idx = Math.floor((angle / (Math.PI * 2)) * bufferLength);
+            const freqVal = dataArray[idx] / 255;
+            const r = ringRadius + freqVal * 18 * (1 - ring * 0.3);
+            const x = cx + Math.cos(angle) * r;
+            const y = cy + Math.sin(angle) * r;
+            
+            if (angle === 0) {
+                waveCtx.moveTo(x, y);
+            } else {
+                waveCtx.lineTo(x, y);
+            }
+        }
+        waveCtx.closePath();
+        waveCtx.strokeStyle = `rgba(26,26,26,${ringAlpha + intensity * 0.1})`;
+        waveCtx.lineWidth = 1.5;
+        waveCtx.stroke();
+    }
+    
+    // Главное кольцо — пульсирует с громкостью
+    const mainRadius = baseRadius + intensity * maxWave;
+    waveCtx.beginPath();
+    waveCtx.arc(cx, cy, mainRadius, 0, Math.PI * 2);
+    waveCtx.strokeStyle = `rgba(26,26,26,${0.25 + intensity * 0.3})`;
+    waveCtx.lineWidth = 2;
+    waveCtx.stroke();
+    
+    // Внутреннее кольцо
+    waveCtx.beginPath();
+    waveCtx.arc(cx, cy, baseRadius - 8 - intensity * 15, 0, Math.PI * 2);
+    waveCtx.strokeStyle = `rgba(26,26,26,${0.12 + intensity * 0.2})`;
+    waveCtx.lineWidth = 1;
+    waveCtx.stroke();
+}
 
 async function loadTracks() {
     try {
@@ -393,6 +513,9 @@ async function loadTracks() {
 
 function playTrack(index) {
     if (index < 0 || index >= tracks.length) return;
+    
+    initAudioContext();
+    
     currentIndex = index;
     const track = tracks[index];
     audio.src = `${SERVER_URL}/music/${track.file}`;
@@ -405,21 +528,38 @@ function playTrack(index) {
     updateMeta();
     renderTracks();
     document.getElementById('nowCover').classList.add('playing');
+    
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    
+    if (!waveAnimationId || waveAnimationId <= 0) {
+        drawWave();
+    }
 }
 
 function togglePlay() {
     if (tracks.length === 0) return;
     if (currentIndex === -1) { playTrack(0); return; }
+    
+    initAudioContext();
+    
     if (isPlaying) {
         audio.pause();
         isPlaying = false;
         playBtn.textContent = '▶';
         document.getElementById('nowCover').classList.remove('playing');
+        if (waveAnimationId) {
+            cancelAnimationFrame(waveAnimationId);
+            waveAnimationId = null;
+        }
     } else {
         audio.play();
         isPlaying = true;
         playBtn.textContent = '⏸';
         document.getElementById('nowCover').classList.add('playing');
+        if (audioContext.state === 'suspended') audioContext.resume();
+        if (!waveAnimationId) drawWave();
     }
 }
 
