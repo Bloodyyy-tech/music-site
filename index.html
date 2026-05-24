@@ -375,8 +375,18 @@ function playTrack(index) {
     if (index < 0 || index >= tracks.length) return;
     currentIndex = index;
     const track = tracks[index];
-    audio.src = `${SERVER_URL}/music/${track.file}`;
+    const url = `${SERVER_URL}/music/${track.file}`;
+    const ext = track.file.split('.').pop().toLowerCase();
+    const mimeType = ext === 'm4a' ? 'audio/mp4' : 'audio/mpeg';
+    
+    audio.innerHTML = '';
+    const source = document.createElement('source');
+    source.src = url;
+    source.type = mimeType;
+    audio.appendChild(source);
+    audio.load();
     audio.play();
+    
     isPlaying = true;
     playBtn.textContent = '⏸';
     document.getElementById('nowTitle').textContent = track.title;
