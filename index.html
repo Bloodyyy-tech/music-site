@@ -6,45 +6,18 @@
     <title>POXOTB Music</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #fafafa; --surface: #ffffff; --border: #e8e8e8;
-            --text: #1a1a1a; --text-dim: #888; --radius: 20px;
-        }
+        :root { --bg: #fafafa; --surface: #ffffff; --border: #e8e8e8; --text: #1a1a1a; --text-dim: #888; --radius: 20px; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
-        .sakura-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('https://i.ibb.co/GQ8dq3DW/image.png');
-            background-size: cover; background-position: center; opacity: 0.06; pointer-events: none; z-index: 0;
-        }
-        .petal {
-            position: fixed; pointer-events: none; z-index: 0; font-size: 20px; opacity: 0.5; animation: fall linear infinite;
-        }
-        @keyframes fall {
-            0% { transform: translateY(-10vh) rotate(0deg) scale(0.8); opacity: 0; }
-            10% { opacity: 1; } 90% { opacity: 1; }
-            100% { transform: translateY(105vh) rotate(360deg) scale(0.3); opacity: 0; }
-        }
+        .sakura-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://i.ibb.co/GQ8dq3DW/image.png'); background-size: cover; background-position: center; opacity: 0.06; pointer-events: none; z-index: 0; }
+        .petal { position: fixed; pointer-events: none; z-index: 0; font-size: 20px; opacity: 0.5; animation: fall linear infinite; }
+        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg) scale(0.8); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(105vh) rotate(360deg) scale(0.3); opacity: 0; } }
         .content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 40px 20px 60px; }
         .header { text-align: center; padding: 50px 0 40px; }
         .header-badge { display: inline-block; background: #1a1a1a; color: #fff; padding: 8px 22px; border-radius: 50px; font-size: 0.7em; letter-spacing: 4px; margin-bottom: 20px; }
         .header h1 { font-family: 'Playfair Display', serif; font-size: 3.5em; font-weight: 900; letter-spacing: 8px; color: #1a1a1a; line-height: 1; }
         .header .sub { font-size: 0.85em; color: #999; letter-spacing: 5px; margin-top: 12px; font-weight: 300; }
         .header::after { content: ''; display: block; width: 60px; height: 1px; background: #1a1a1a; margin: 25px auto 0; }
-        .upload-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 25px 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 4px 30px rgba(0,0,0,0.04); }
-        .upload-section h3 { font-family: 'Playfair Display', serif; font-size: 1.1em; letter-spacing: 3px; color: #1a1a1a; margin-bottom: 15px; }
-        .upload-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-        .upload-section input[type="text"] { padding: 12px 16px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 0.9em; font-family: 'Inter', sans-serif; outline: none; width: 180px; }
-        .upload-section input[type="text"]:focus { border-color: #1a1a1a; }
-        .upload-section input[type="file"] { display: none; }
-        .btn { padding: 12px 22px; border: none; border-radius: 10px; font-size: 0.9em; font-weight: 600; cursor: pointer; letter-spacing: 1px; transition: all 0.3s; font-family: 'Inter', sans-serif; }
-        .btn-outline { background: #fff; color: #1a1a1a; border: 1px solid #1a1a1a; }
-        .btn-outline:hover { background: #f5f5f5; }
-        .btn-dark { background: #1a1a1a; color: #fff; }
-        .btn-dark:hover { background: #333; }
-        .btn-small { padding: 6px 14px; font-size: 0.75em; border-radius: 8px; background: #f5f5f5; color: #888; border: 1px solid #e0e0e0; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
-        .btn-small:hover { background: #eee; color: #1a1a1a; }
-        .upload-status { font-size: 0.8em; color: #888; margin-top: 10px; min-height: 20px; }
         .player-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 4px 30px rgba(0,0,0,0.04); }
         .cover-wrap { position: relative; width: 240px; height: 240px; margin: 0 auto 30px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1)); }
         .cover { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 5em; font-weight: 900; background: linear-gradient(135deg, #f8f8f8, #eee); color: #1a1a1a; border: 1px solid #e0e0e0; background-size: cover; background-position: center; animation: rotateVinyl 20s linear infinite paused; }
@@ -94,8 +67,6 @@
             .player-card { padding: 25px 18px; }
             .controls { gap: 15px; }
             .ctrl-btn.play-btn { width: 55px; height: 55px; font-size: 1.5em; }
-            .upload-row { flex-direction: column; }
-            .upload-section input[type="text"] { width: 100%; }
         }
     </style>
 </head>
@@ -108,21 +79,7 @@
     <div class="header">
         <div class="header-badge">MUSIC</div>
         <h1>POXOTB</h1>
-        <p class="sub">загружай и слушай</p>
-    </div>
-
-    <div class="upload-section">
-        <h3>📤 ЗАГРУЗИТЬ ТРЕК</h3>
-        <div class="upload-row">
-            <input type="text" id="uploadTitle" placeholder="Название трека">
-            <input type="text" id="uploadArtist" placeholder="Твой ник">
-            <input type="file" id="uploadFile" accept="audio/*">
-            <input type="file" id="uploadCover" accept="image/*">
-            <button class="btn btn-outline" onclick="document.getElementById('uploadFile').click()">📁 MP3</button>
-            <button class="btn btn-outline" onclick="document.getElementById('uploadCover').click()">🖼 Обложка</button>
-            <button class="btn btn-dark" onclick="uploadTrack()">⬆ Загрузить</button>
-        </div>
-        <div class="upload-status" id="uploadStatus"></div>
+        <p class="sub">загружай через бота и слушай</p>
     </div>
 
     <div class="player-card">
@@ -179,50 +136,6 @@ const audio = document.getElementById('audio'), playBtn = document.getElementByI
     }
 })();
 
-function uploadTrack() {
-    const fi = document.getElementById('uploadFile'), ci = document.getElementById('uploadCover');
-    const title = document.getElementById('uploadTitle').value.trim();
-    const artist = document.getElementById('uploadArtist').value.trim();
-    const status = document.getElementById('uploadStatus');
-    if (!fi.files[0]) { status.textContent = '❌ Выбери MP3'; return; }
-    if (!title) { status.textContent = '❌ Введи название'; return; }
-
-    status.textContent = '⏳ Загрузка...';
-    const formData = new FormData();
-    formData.append('file', fi.files[0]);
-    formData.append('title', title);
-    formData.append('artist', artist || 'Неизвестен');
-
-    if (ci.files[0]) {
-        const cr = new FileReader();
-        cr.onload = function(e) {
-            formData.append('cover_b64', e.target.result.split(',')[1]);
-            formData.append('cover_filename', ci.files[0].name);
-            sendForm(formData);
-        };
-        cr.readAsDataURL(ci.files[0]);
-    } else {
-        sendForm(formData);
-    }
-}
-
-function sendForm(formData) {
-    const status = document.getElementById('uploadStatus');
-    fetch(`${SERVER_URL}/upload`, { method: 'POST', body: formData })
-    .then(r => r.json())
-    .then(d => {
-        if (d.ok) {
-            status.textContent = '✅ Загружено!';
-            document.getElementById('uploadFile').value = '';
-            document.getElementById('uploadCover').value = '';
-            document.getElementById('uploadTitle').value = '';
-            document.getElementById('uploadArtist').value = '';
-            loadTracks();
-        } else { status.textContent = '❌ Ошибка: ' + (d.error || 'неизвестно'); }
-    })
-    .catch(() => { status.textContent = '❌ Ошибка соединения'; });
-}
-
 function addCover(trackId) {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
     inp.onchange = function() {
@@ -256,10 +169,8 @@ async function loadTracks() {
 function playTrack(index) {
     if (index < 0 || index >= tracks.length) return;
     currentIndex = index; const t = tracks[index];
-    const url = `${SERVER_URL}/music/${t.file}`;
-    const mime = t.file.endsWith('.m4a') ? 'audio/mp4' : 'audio/mpeg';
-    audio.innerHTML = ''; const s = document.createElement('source'); s.src = url; s.type = mime;
-    audio.appendChild(s); audio.load(); audio.play();
+    audio.src = `${SERVER_URL}/music/${t.file}`;
+    audio.play();
     isPlaying = true; playBtn.textContent = '⏸';
     document.getElementById('nowTitle').textContent = t.title;
     document.getElementById('nowArtist').textContent = t.artist;
@@ -296,7 +207,7 @@ function updateCover(i) {
 }
 function renderTracks() {
     const c = document.getElementById('trackList');
-    if (!tracks.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🎵</div><p>Пока нет треков</p></div>'; return; }
+    if (!tracks.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🎵</div><p>Пока нет треков</p><p style="font-size:0.75em;">Отправь MP3 боту в Telegram</p></div>'; return; }
     c.innerHTML = tracks.map((t, i) => {
         const cs = t.cover ? `background-image:url(${SERVER_URL}/covers/${t.cover});background-size:cover;background-position:center;color:transparent` : '';
         const cl = t.cover ? '' : (t.title.charAt(0).toUpperCase() || '🎵');
