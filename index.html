@@ -6,60 +6,132 @@
     <title>POXOTB Music</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #fafafa; --surface: #ffffff; --border: #e8e8e8; --text: #1a1a1a; --text-dim: #888; --radius: 20px; }
+        :root {
+            --bg: #fafafa; --surface: #ffffff; --border: #e8e8e8;
+            --text: #1a1a1a; --text-dim: #888; --accent: #1a1a1a;
+            --radius: 20px;
+            --bg-image: url('https://i.ibb.co/GQ8dq3DW/image.png');
+            --bg-opacity: 0.06;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
-        .sakura-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://i.ibb.co/GQ8dq3DW/image.png'); background-size: cover; background-position: center; opacity: 0.06; pointer-events: none; z-index: 0; }
-        .petal { position: fixed; pointer-events: none; z-index: 0; font-size: 20px; opacity: 0.5; animation: fall linear infinite; }
-        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg) scale(0.8); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(105vh) rotate(360deg) scale(0.3); opacity: 0; } }
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: 'Inter', sans-serif; min-height: 100vh;
+            transition: background 3s ease, color 3s ease;
+        }
+        .bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: var(--bg-image);
+            background-size: cover; background-position: center;
+            opacity: var(--bg-opacity); pointer-events: none; z-index: 0;
+            transition: opacity 3s ease, background-image 3s ease;
+        }
+        .petal {
+            position: fixed; pointer-events: none; z-index: 0;
+            font-size: 20px; animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 1; } 90% { opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg) scale(0.3); opacity: 0; }
+        }
         .content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 40px 20px 60px; }
-        .header { text-align: center; padding: 50px 0 40px; }
-        .header-badge { display: inline-block; background: #1a1a1a; color: #fff; padding: 8px 22px; border-radius: 50px; font-size: 0.7em; letter-spacing: 4px; margin-bottom: 20px; }
-        .header h1 { font-family: 'Playfair Display', serif; font-size: 3.5em; font-weight: 900; letter-spacing: 8px; color: #1a1a1a; line-height: 1; }
-        .header .sub { font-size: 0.85em; color: #999; letter-spacing: 5px; margin-top: 12px; font-weight: 300; }
-        .header::after { content: ''; display: block; width: 60px; height: 1px; background: #1a1a1a; margin: 25px auto 0; }
-        .player-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 4px 30px rgba(0,0,0,0.04); }
+        .header { text-align: center; padding: 50px 0 30px; }
+        .header-badge {
+            display: inline-block; background: var(--accent); color: #fff;
+            padding: 8px 22px; border-radius: 50px; font-size: 0.7em;
+            letter-spacing: 4px; margin-bottom: 20px;
+            transition: background 3s ease;
+        }
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5em; font-weight: 900; letter-spacing: 8px;
+            color: var(--text); line-height: 1; transition: color 3s ease;
+        }
+        .header .sub {
+            font-size: 0.85em; color: var(--text-dim); letter-spacing: 5px;
+            margin-top: 12px; font-weight: 300;
+        }
+
+        /* Плейлисты */
+        .playlist-nav {
+            display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        .playlist-btn {
+            padding: 10px 20px; border-radius: 50px; font-size: 0.85em;
+            font-weight: 600; cursor: pointer; letter-spacing: 2px;
+            border: 2px solid transparent; transition: all 0.4s;
+            font-family: 'Inter', sans-serif;
+        }
+        .playlist-btn.zxc-btn { background: #0a0a0a; color: #ff1a1a; border-color: #3a0000; }
+        .playlist-btn.gym-btn { background: #fff; color: #1a1a1a; border-color: #ccc; }
+        .playlist-btn.sad-btn { background: #0a0a1a; color: #4a8aff; border-color: #1a2a5a; }
+        .playlist-btn.mix-btn { background: #fff0f5; color: #c06080; border-color: #f0c0d0; }
+        .playlist-btn.active { transform: scale(1.08); box-shadow: 0 0 20px rgba(0,0,0,0.2); }
+        .playlist-btn.zxc-btn.active { box-shadow: 0 0 25px rgba(255,0,0,0.3); }
+        .playlist-btn.sad-btn.active { box-shadow: 0 0 25px rgba(70,130,255,0.3); }
+        .playlist-btn.mix-btn.active { box-shadow: 0 0 25px rgba(255,150,180,0.3); }
+
+        .player-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 40px 30px;
+            margin-bottom: 30px; text-align: center;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.04);
+            transition: all 3s ease;
+        }
         .cover-wrap { position: relative; width: 240px; height: 240px; margin: 0 auto 30px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1)); }
-        .cover { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 5em; font-weight: 900; background: linear-gradient(135deg, #f8f8f8, #eee); color: #1a1a1a; border: 1px solid #e0e0e0; background-size: cover; background-position: center; animation: rotateVinyl 20s linear infinite paused; }
+        .cover {
+            width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Playfair Display', serif; font-size: 5em; font-weight: 900;
+            background: linear-gradient(135deg, #f8f8f8, #eee);
+            color: var(--accent); border: 1px solid #e0e0e0;
+            background-size: cover; background-position: center;
+            animation: rotateVinyl 20s linear infinite paused;
+            transition: color 3s ease;
+        }
         .cover.playing { animation-play-state: running; }
         @keyframes rotateVinyl { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .cover-hole { position: absolute; width: 30px; height: 30px; background: #fafafa; border-radius: 50%; border: 1px solid #e0e0e0; z-index: 2; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .cover-hole::after { content: ''; position: absolute; width: 8px; height: 8px; background: #1a1a1a; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .now-title { font-family: 'Playfair Display', serif; font-size: 1.5em; font-weight: 700; color: #1a1a1a; margin-bottom: 5px; }
-        .now-artist { font-size: 0.9em; color: #888; margin-bottom: 4px; }
+        .cover-hole::after { content: ''; position: absolute; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .now-title { font-family: 'Playfair Display', serif; font-size: 1.5em; font-weight: 700; color: var(--text); margin-bottom: 5px; transition: color 3s ease; }
+        .now-artist { font-size: 0.9em; color: var(--text-dim); margin-bottom: 4px; }
         .now-uploader { font-size: 0.75em; color: #bbb; margin-bottom: 6px; letter-spacing: 1px; }
         .now-duration { font-size: 0.8em; color: #bbb; margin-bottom: 20px; }
         .progress-wrap { width: 100%; margin-bottom: 20px; }
         .progress-bar { width: 100%; height: 4px; background: #eee; border-radius: 2px; cursor: pointer; position: relative; }
-        .progress-fill { height: 100%; background: #1a1a1a; border-radius: 2px; width: 0%; transition: width 0.15s linear; }
-        .progress-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: #1a1a1a; border-radius: 50%; left: 0%; transition: left 0.15s linear; }
+        .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.15s linear, background 3s ease; }
+        .progress-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: var(--accent); border-radius: 50%; left: 0%; transition: left 0.15s linear, background 3s ease; }
         .controls { display: flex; align-items: center; justify-content: center; gap: 25px; margin-bottom: 20px; }
-        .ctrl-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; color: #1a1a1a; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        .ctrl-btn:hover { background: #f0f0f0; }
-        .ctrl-btn.play-btn { background: #1a1a1a; color: #fff; width: 65px; height: 65px; font-size: 1.8em; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s; }
+        .ctrl-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; color: var(--text); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .ctrl-btn:hover { background: rgba(0,0,0,0.05); }
+        .ctrl-btn.play-btn { background: var(--accent); color: #fff; width: 65px; height: 65px; font-size: 1.8em; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s; }
         .ctrl-btn.play-btn:hover { background: #333; transform: scale(1.05); }
         .volume-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
-        .volume-row input[type="range"] { width: 100px; accent-color: #1a1a1a; height: 3px; }
-        .vol-icon { font-size: 0.9em; color: #888; cursor: pointer; }
+        .volume-row input[type="range"] { width: 100px; accent-color: var(--accent); height: 3px; }
+        .vol-icon { font-size: 0.9em; color: var(--text-dim); cursor: pointer; }
         audio { display: none; }
-        .section-title { font-family: 'Playfair Display', serif; font-size: 1.2em; font-weight: 700; letter-spacing: 3px; color: #1a1a1a; text-align: center; margin-bottom: 20px; }
-        .track-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.2em; font-weight: 700; letter-spacing: 3px; color: var(--text); text-align: center; margin-bottom: 20px; transition: color 3s ease; }
+        .track-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: all 3s ease; }
         .track-item { display: flex; align-items: center; gap: 12px; padding: 14px 24px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: all 0.25s; }
         .track-item:last-child { border-bottom: none; }
         .track-item:hover { background: #fafafa; }
         .track-item.active { background: #f5f5f5; }
         .track-num { width: 28px; font-size: 0.85em; color: #bbb; text-align: center; flex-shrink: 0; font-family: 'Playfair Display', serif; }
-        .track-item.active .track-num { color: #1a1a1a; font-weight: 700; }
-        .track-cover-sm { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #f5f5f5, #eee); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.4em; font-weight: 700; color: #1a1a1a; flex-shrink: 0; background-size: cover; background-position: center; }
+        .track-item.active .track-num { color: var(--accent); font-weight: 700; }
+        .track-cover-sm { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #f5f5f5, #eee); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.4em; font-weight: 700; color: var(--accent); flex-shrink: 0; background-size: cover; background-position: center; transition: color 3s ease; }
         .track-info { flex: 1; min-width: 0; }
-        .track-name { font-weight: 600; color: #1a1a1a; font-size: 0.95em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .track-meta { display: flex; gap: 10px; font-size: 0.75em; color: #999; margin-top: 2px; }
+        .track-name { font-weight: 600; color: var(--text); font-size: 0.95em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-meta { display: flex; gap: 10px; font-size: 0.75em; color: var(--text-dim); margin-top: 2px; }
         .track-dur { font-size: 0.8em; color: #bbb; flex-shrink: 0; }
         .track-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-small { padding: 6px 14px; font-size: 0.75em; border-radius: 8px; background: #f5f5f5; color: #888; border: 1px solid #e0e0e0; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+        .btn-small:hover { background: #eee; color: var(--text); }
         .empty-state { text-align: center; padding: 70px 20px; color: #ccc; }
         .empty-state .icon { font-size: 4em; margin-bottom: 15px; }
         .empty-state p { font-size: 0.9em; letter-spacing: 1px; color: #bbb; }
-        footer { text-align: center; padding: 40px 20px; color: #ddd; font-size: 0.75em; letter-spacing: 2px; }
+        footer { text-align: center; padding: 40px 20px; color: #ddd; font-size: 0.75em; letter-spacing: 2px; transition: color 3s ease; }
         @media (max-width: 600px) {
             .header h1 { font-size: 2.2em; }
             .cover-wrap { width: 170px; height: 170px; }
@@ -72,7 +144,7 @@
 </head>
 <body>
 
-<div class="sakura-bg"></div>
+<div class="bg-layer" id="bgLayer"></div>
 <div id="petalsContainer"></div>
 
 <div class="content">
@@ -80,6 +152,14 @@
         <div class="header-badge">MUSIC</div>
         <h1>POXOTB</h1>
         <p class="sub">загружай через бота и слушай</p>
+    </div>
+
+    <!-- Плейлисты -->
+    <div class="playlist-nav">
+        <button class="playlist-btn zxc-btn active" onclick="setPlaylist('zxc')">🖤 zxc</button>
+        <button class="playlist-btn gym-btn" onclick="setPlaylist('gym')">🤍 gym</button>
+        <button class="playlist-btn sad-btn" onclick="setPlaylist('sad')">💙 sad</button>
+        <button class="playlist-btn mix-btn" onclick="setPlaylist('mix')">🩷 mix</button>
     </div>
 
     <div class="player-card">
@@ -109,7 +189,7 @@
         </div>
     </div>
 
-    <div class="section-title">ТРЕКИ</div>
+    <div class="section-title" id="sectionTitle">ТРЕКИ — zxc</div>
     <div class="track-list" id="trackList">
         <div class="empty-state"><div class="icon">🎵</div><p>Загрузка...</p></div>
     </div>
@@ -120,21 +200,82 @@
 
 <script>
 const SERVER_URL = 'https://worker-production-1bf9.up.railway.app';
+
+const PLAYLIST_CONFIG = {
+    zxc: {
+        bg: 'url(https://i.ibb.co/NdFPnN4v/5.jpg)',
+        bgOpacity: 0.15,
+        surface: '#0a0a0a', text: '#e0e0e0', textDim: '#888',
+        accent: '#ff1a1a', border: '#1a0000',
+        petals: ['🖤', '💀', '⛧', '🩸', '🥀']
+    },
+    gym: {
+        bg: 'url(https://i.ibb.co/67RJxNHQ/6.jpg)',
+        bgOpacity: 0.08,
+        surface: '#ffffff', text: '#1a1a1a', textDim: '#888',
+        accent: '#1a1a1a', border: '#e0e0e0',
+        petals: ['💪', '🏋️', '⚡', '🔥', '🏆']
+    },
+    sad: {
+        bg: 'url(https://i.ibb.co/h1hXwm4w/7.jpg)',
+        bgOpacity: 0.15,
+        surface: '#0a0a1a', text: '#c0d0ff', textDim: '#6a7a9a',
+        accent: '#4a8aff', border: '#1a2a5a',
+        petals: ['💙', '🌧', '💧', '🌙', '🦋']
+    },
+    mix: {
+        bg: 'url(https://i.ibb.co/5WPZMttg/cats-cherryblossom-aesthetic-pink.jpg)',
+        bgOpacity: 0.1,
+        surface: '#fff5f8', text: '#4a2030', textDim: '#a08090',
+        accent: '#c06080', border: '#f0c0d0',
+        petals: ['🌸', '🩷', '💮', '🌺', '✨']
+    }
+};
+
+let currentPlaylist = 'zxc';
 let tracks = [], currentIndex = -1, isPlaying = false, prevVolume = 80;
 const audio = document.getElementById('audio'), playBtn = document.getElementById('playBtn');
+const root = document.documentElement;
 
-(function createPetals() {
-    const c = document.getElementById('petalsContainer'), p = ['🌸', '💮', '🌺'];
+function setPlaylist(pl) {
+    currentPlaylist = pl;
+    const cfg = PLAYLIST_CONFIG[pl];
+
+    // CSS переменные с плавным переходом
+    root.style.setProperty('--bg-image', cfg.bg);
+    root.style.setProperty('--bg-opacity', cfg.bgOpacity);
+    root.style.setProperty('--surface', cfg.surface);
+    root.style.setProperty('--text', cfg.text);
+    root.style.setProperty('--text-dim', cfg.textDim);
+    root.style.setProperty('--accent', cfg.accent);
+    root.style.setProperty('--border', cfg.border);
+
+    document.getElementById('sectionTitle').textContent = 'ТРЕКИ — ' + pl;
+
+    // Кнопки
+    document.querySelectorAll('.playlist-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.' + pl + '-btn').classList.add('active');
+
+    // Лепестки
+    updatePetals(cfg.petals);
+
+    renderTracks();
+}
+
+function updatePetals(petals) {
+    const container = document.getElementById('petalsContainer');
+    container.innerHTML = '';
     for (let i = 0; i < 25; i++) {
         const el = document.createElement('div'); el.className = 'petal';
-        el.textContent = p[Math.floor(Math.random() * p.length)];
+        el.textContent = petals[Math.floor(Math.random() * petals.length)];
         el.style.left = Math.random() * 100 + '%';
         el.style.animationDuration = (8 + Math.random() * 15) + 's';
         el.style.animationDelay = Math.random() * 15 + 's';
         el.style.fontSize = (12 + Math.random() * 20) + 'px';
-        c.appendChild(el);
+        el.style.color = root.style.getPropertyValue('--accent');
+        container.appendChild(el);
     }
-})();
+}
 
 function addCover(trackId) {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
@@ -156,21 +297,23 @@ function addCover(trackId) {
 async function loadTracks() {
     try {
         const r = await fetch(`${SERVER_URL}/api/tracks`), d = await r.json();
-        tracks = d.tracks || []; renderTracks();
+        tracks = d.tracks || [];
         if (tracks.length > 0 && currentIndex === -1) {
-            document.getElementById('nowTitle').textContent = tracks[0].title;
-            document.getElementById('nowArtist').textContent = tracks[0].artist;
-            document.getElementById('nowUploader').textContent = 'выложил: ' + (tracks[0].uploader || 'неизвестен');
-            updateCover(0);
+            const first = tracks.find(t => (t.playlist || 'mix') === currentPlaylist) || tracks[0];
+            const idx = tracks.indexOf(first);
+            document.getElementById('nowTitle').textContent = first.title;
+            document.getElementById('nowArtist').textContent = first.artist;
+            document.getElementById('nowUploader').textContent = 'выложил: ' + (first.uploader || 'неизвестен');
+            updateCover(idx);
         }
+        renderTracks();
     } catch(e) { document.getElementById('trackList').innerHTML = '<div class="empty-state"><div class="icon">🔌</div><p>Сервер недоступен</p></div>'; }
 }
 
 function playTrack(index) {
     if (index < 0 || index >= tracks.length) return;
     currentIndex = index; const t = tracks[index];
-    audio.src = `${SERVER_URL}/music/${t.file}`;
-    audio.play();
+    audio.src = `${SERVER_URL}/music/${t.file}`; audio.play();
     isPlaying = true; playBtn.textContent = '⏸';
     document.getElementById('nowTitle').textContent = t.title;
     document.getElementById('nowArtist').textContent = t.artist;
@@ -185,8 +328,20 @@ function togglePlay() {
     if (isPlaying) { audio.pause(); isPlaying = false; playBtn.textContent = '▶'; document.getElementById('nowCover').classList.remove('playing'); }
     else { audio.play(); isPlaying = true; playBtn.textContent = '⏸'; document.getElementById('nowCover').classList.add('playing'); }
 }
-function nextTrack() { if (!tracks.length) return; let n = currentIndex + 1; if (n >= tracks.length) n = 0; playTrack(n); }
-function prevTrack() { if (!tracks.length) return; let p = currentIndex - 1; if (p < 0) p = tracks.length - 1; playTrack(p); }
+function nextTrack() {
+    const filtered = tracks.filter(t => (t.playlist || 'mix') === currentPlaylist);
+    if (!filtered.length) return;
+    let idx = filtered.indexOf(tracks[currentIndex]);
+    let next = idx + 1; if (next >= filtered.length) next = 0;
+    playTrack(tracks.indexOf(filtered[next]));
+}
+function prevTrack() {
+    const filtered = tracks.filter(t => (t.playlist || 'mix') === currentPlaylist);
+    if (!filtered.length) return;
+    let idx = filtered.indexOf(tracks[currentIndex]);
+    let prev = idx - 1; if (prev < 0) prev = filtered.length - 1;
+    playTrack(tracks.indexOf(filtered[prev]));
+}
 function updateMeta() {
     if (currentIndex >= 0 && tracks[currentIndex]) {
         if (!tracks[currentIndex].duration && audio.duration) tracks[currentIndex].duration = Math.floor(audio.duration);
@@ -201,18 +356,21 @@ function muteToggle() {
     else { audio.volume = prevVolume / 100; document.getElementById('volumeSlider').value = prevVolume; }
 }
 function updateCover(i) {
+    if (i < 0 || i >= tracks.length) return;
     const t = tracks[i], c = document.getElementById('nowCover');
     if (t.cover) { c.style.backgroundImage = `url(${SERVER_URL}/covers/${t.cover})`; c.style.backgroundSize = 'cover'; c.style.backgroundPosition = 'center'; c.textContent = ''; }
     else { c.style.backgroundImage = ''; c.textContent = t.title.charAt(0).toUpperCase() || '🎵'; }
 }
 function renderTracks() {
     const c = document.getElementById('trackList');
-    if (!tracks.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🎵</div><p>Пока нет треков</p><p style="font-size:0.75em;">Отправь MP3 боту в Telegram</p></div>'; return; }
-    c.innerHTML = tracks.map((t, i) => {
+    const filtered = tracks.filter(t => (t.playlist || 'mix') === currentPlaylist);
+    if (!filtered.length) { c.innerHTML = '<div class="empty-state"><div class="icon">🎵</div><p>Нет треков в этом плейлисте</p><p style="font-size:0.75em;">Отправь MP3 боту и выбери плейлист ' + currentPlaylist + '</p></div>'; return; }
+    c.innerHTML = filtered.map((t) => {
+        const i = tracks.indexOf(t);
         const cs = t.cover ? `background-image:url(${SERVER_URL}/covers/${t.cover});background-size:cover;background-position:center;color:transparent` : '';
         const cl = t.cover ? '' : (t.title.charAt(0).toUpperCase() || '🎵');
         return `<div class="track-item ${i === currentIndex && isPlaying ? 'active' : ''}">
-            <div class="track-num" onclick="playTrack(${i})">${i === currentIndex && isPlaying ? '' : (i+1)}</div>
+            <div class="track-num" onclick="playTrack(${i})">${i === currentIndex && isPlaying ? '' : (filtered.indexOf(t)+1)}</div>
             <div class="track-cover-sm" style="${cs}" onclick="playTrack(${i})">${cl}</div>
             <div class="track-info" onclick="playTrack(${i})"><div class="track-name">${t.title}</div><div class="track-meta"><span>${t.artist}</span><span>• ${t.uploader||'неизвестен'}</span></div></div>
             <div class="track-dur" onclick="playTrack(${i})">${formatDuration(t.duration)}</div>
@@ -224,6 +382,10 @@ function formatDuration(s) {
     if (!s) { if (currentIndex >= 0 && tracks[currentIndex] && audio.duration) s = Math.floor(audio.duration); else return '--:--'; }
     return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 }
+
+// Старт
+updatePetals(PLAYLIST_CONFIG.zxc.petals);
+setPlaylist('zxc');
 loadTracks();
 </script>
 </body>
