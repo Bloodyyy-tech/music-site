@@ -1,340 +1,560 @@
-#!/usr/bin/env python3
-"""
-POXOTB Music Bot v15 — JSON upload + add_cover + base64
-"""
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POXOTB Music</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --border: #e8e8e8;
+            --text: #1a1a1a;
+            --text-dim: #888;
+            --radius: 20px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        .sakura-bg {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url('https://i.ibb.co/GQ8dq3DW/image.png');
+            background-size: cover; background-position: center;
+            opacity: 0.06; pointer-events: none; z-index: 0;
+        }
+        .petal {
+            position: fixed; pointer-events: none; z-index: 0;
+            font-size: 20px; opacity: 0.5;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 1; } 90% { opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg) scale(0.3); opacity: 0; }
+        }
+        .content {
+            position: relative; z-index: 1;
+            max-width: 800px; margin: 0 auto; padding: 40px 20px 60px;
+        }
+        .header { text-align: center; padding: 50px 0 40px; }
+        .header-badge {
+            display: inline-block; background: #1a1a1a; color: #fff;
+            padding: 8px 22px; border-radius: 50px;
+            font-size: 0.7em; letter-spacing: 4px; margin-bottom: 20px;
+        }
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5em; font-weight: 900; letter-spacing: 8px;
+            color: #1a1a1a; line-height: 1;
+        }
+        .header .sub {
+            font-size: 0.85em; color: #999;
+            letter-spacing: 5px; margin-top: 12px; font-weight: 300;
+        }
+        .header::after {
+            content: ''; display: block;
+            width: 60px; height: 1px; background: #1a1a1a; margin: 25px auto 0;
+        }
+        .upload-section {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 25px 30px;
+            margin-bottom: 30px; text-align: center;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.04);
+        }
+        .upload-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1em; letter-spacing: 3px; color: #1a1a1a; margin-bottom: 15px;
+        }
+        .upload-row {
+            display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+        }
+        .upload-section input[type="text"] {
+            padding: 12px 16px; background: #f5f5f5;
+            border: 1px solid #e0e0e0; border-radius: 10px;
+            font-size: 0.9em; font-family: 'Inter', sans-serif; outline: none; width: 180px;
+        }
+        .upload-section input[type="text"]:focus { border-color: #1a1a1a; }
+        .upload-section input[type="file"] { display: none; }
+        .btn {
+            padding: 12px 22px; border: none; border-radius: 10px;
+            font-size: 0.9em; font-weight: 600; cursor: pointer;
+            letter-spacing: 1px; transition: all 0.3s; font-family: 'Inter', sans-serif;
+        }
+        .btn-outline { background: #fff; color: #1a1a1a; border: 1px solid #1a1a1a; }
+        .btn-outline:hover { background: #f5f5f5; }
+        .btn-dark { background: #1a1a1a; color: #fff; }
+        .btn-dark:hover { background: #333; }
+        .btn-small {
+            padding: 6px 14px; font-size: 0.75em; border-radius: 8px;
+            background: #f5f5f5; color: #888; border: 1px solid #e0e0e0;
+            cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .btn-small:hover { background: #eee; color: #1a1a1a; }
+        .upload-status { font-size: 0.8em; color: #888; margin-top: 10px; min-height: 20px; }
+        .player-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 40px 30px;
+            margin-bottom: 30px; text-align: center;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.04);
+        }
+        .cover-wrap {
+            position: relative; width: 240px; height: 240px;
+            margin: 0 auto 30px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.1));
+        }
+        .cover {
+            width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 5em; font-weight: 900;
+            background: linear-gradient(135deg, #f8f8f8, #eee);
+            color: #1a1a1a; border: 1px solid #e0e0e0;
+            background-size: cover; background-position: center;
+            animation: rotateVinyl 20s linear infinite paused;
+        }
+        .cover.playing { animation-play-state: running; }
+        @keyframes rotateVinyl {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .cover-hole {
+            position: absolute; width: 30px; height: 30px;
+            background: #fafafa; border-radius: 50%; border: 1px solid #e0e0e0;
+            z-index: 2; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        .cover-hole::after {
+            content: ''; position: absolute;
+            width: 8px; height: 8px; background: #1a1a1a; border-radius: 50%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        .now-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5em; font-weight: 700; color: #1a1a1a; margin-bottom: 5px;
+        }
+        .now-artist { font-size: 0.9em; color: #888; margin-bottom: 4px; }
+        .now-uploader { font-size: 0.75em; color: #bbb; margin-bottom: 6px; letter-spacing: 1px; }
+        .now-duration { font-size: 0.8em; color: #bbb; margin-bottom: 20px; }
+        .progress-wrap { width: 100%; margin-bottom: 20px; }
+        .progress-bar {
+            width: 100%; height: 4px; background: #eee;
+            border-radius: 2px; cursor: pointer; position: relative;
+        }
+        .progress-fill {
+            height: 100%; background: #1a1a1a; border-radius: 2px;
+            width: 0%; transition: width 0.15s linear;
+        }
+        .progress-dot {
+            position: absolute; top: 50%; transform: translate(-50%, -50%);
+            width: 10px; height: 10px; background: #1a1a1a; border-radius: 50%;
+            left: 0%; transition: left 0.15s linear;
+        }
+        .controls {
+            display: flex; align-items: center; justify-content: center;
+            gap: 25px; margin-bottom: 20px;
+        }
+        .ctrl-btn {
+            background: none; border: none; font-size: 1.5em;
+            cursor: pointer; color: #1a1a1a;
+            width: 45px; height: 45px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .ctrl-btn:hover { background: #f0f0f0; }
+        .ctrl-btn.play-btn {
+            background: #1a1a1a; color: #fff;
+            width: 65px; height: 65px; font-size: 1.8em;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s;
+        }
+        .ctrl-btn.play-btn:hover { background: #333; transform: scale(1.05); }
+        .volume-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .volume-row input[type="range"] { width: 100px; accent-color: #1a1a1a; height: 3px; }
+        .vol-icon { font-size: 0.9em; color: #888; cursor: pointer; }
+        audio { display: none; }
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2em; font-weight: 700; letter-spacing: 3px;
+            color: #1a1a1a; text-align: center; margin-bottom: 20px;
+        }
+        .track-list {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); overflow: hidden;
+        }
+        .track-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 24px; border-bottom: 1px solid #f5f5f5;
+            cursor: pointer; transition: all 0.25s;
+        }
+        .track-item:last-child { border-bottom: none; }
+        .track-item:hover { background: #fafafa; }
+        .track-item.active { background: #f5f5f5; }
+        .track-num {
+            width: 28px; font-size: 0.85em; color: #bbb;
+            text-align: center; flex-shrink: 0; font-family: 'Playfair Display', serif;
+        }
+        .track-item.active .track-num { color: #1a1a1a; font-weight: 700; }
+        .track-cover-sm {
+            width: 48px; height: 48px; border-radius: 14px;
+            background: linear-gradient(135deg, #f5f5f5, #eee);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4em; font-weight: 700; color: #1a1a1a;
+            flex-shrink: 0; background-size: cover; background-position: center;
+        }
+        .track-info { flex: 1; min-width: 0; }
+        .track-name {
+            font-weight: 600; color: #1a1a1a; font-size: 0.95em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .track-meta { display: flex; gap: 10px; font-size: 0.75em; color: #999; margin-top: 2px; }
+        .track-dur { font-size: 0.8em; color: #bbb; flex-shrink: 0; }
+        .track-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .empty-state { text-align: center; padding: 70px 20px; color: #ccc; }
+        .empty-state .icon { font-size: 4em; margin-bottom: 15px; }
+        .empty-state p { font-size: 0.9em; letter-spacing: 1px; color: #bbb; }
+        footer {
+            text-align: center; padding: 40px 20px;
+            color: #ddd; font-size: 0.75em; letter-spacing: 2px;
+        }
+        @media (max-width: 600px) {
+            .header h1 { font-size: 2.2em; letter-spacing: 4px; }
+            .cover-wrap { width: 170px; height: 170px; }
+            .cover { font-size: 3.5em; }
+            .player-card { padding: 25px 18px; }
+            .controls { gap: 15px; }
+            .ctrl-btn.play-btn { width: 55px; height: 55px; font-size: 1.5em; }
+            .upload-row { flex-direction: column; }
+            .upload-section input[type="text"] { width: 100%; }
+        }
+    </style>
+</head>
+<body>
 
-import telebot
-import json
-import os
-import re
-import time
-import base64
-from datetime import datetime
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse
-import threading
+<div class="sakura-bg"></div>
+<div id="petalsContainer"></div>
 
-BOT_TOKEN = "8670348560:AAH9q5WN6Gjmk-MX4aeoAt1rTSxdyfLr038"
-ADMIN_ID = 776631747
-PORT = 8080
-HOST = "0.0.0.0"
+<div class="content">
+    <div class="header">
+        <div class="header-badge">MUSIC</div>
+        <h1>POXOTB</h1>
+        <p class="sub">загружай и слушай</p>
+    </div>
 
-bot = telebot.TeleBot(BOT_TOKEN)
+    <div class="upload-section">
+        <h3>📤 ЗАГРУЗИТЬ ТРЕК</h3>
+        <div class="upload-row">
+            <input type="text" id="uploadTitle" placeholder="Название трека">
+            <input type="text" id="uploadArtist" placeholder="Твой ник">
+            <input type="file" id="uploadFile" accept="audio/*">
+            <input type="file" id="uploadCover" accept="image/*">
+            <button class="btn btn-outline" onclick="document.getElementById('uploadFile').click()">📁 MP3</button>
+            <button class="btn btn-outline" onclick="document.getElementById('uploadCover').click()">🖼 Обложка</button>
+            <button class="btn btn-dark" onclick="uploadTrack()">⬆ Загрузить</button>
+        </div>
+        <div class="upload-status" id="uploadStatus"></div>
+    </div>
 
-MUSIC_DIR = "music"
-COVERS_DIR = "covers"
-os.makedirs(MUSIC_DIR, exist_ok=True)
-os.makedirs(COVERS_DIR, exist_ok=True)
+    <div class="player-card">
+        <div class="cover-wrap">
+            <div class="cover" id="nowCover">🎵</div>
+            <div class="cover-hole"></div>
+        </div>
+        <div class="now-title" id="nowTitle">Выбери трек</div>
+        <div class="now-artist" id="nowArtist">—</div>
+        <div class="now-uploader" id="nowUploader"></div>
+        <div class="now-duration" id="nowDuration"></div>
+        <div class="progress-wrap">
+            <div class="progress-bar" onclick="seek(event)">
+                <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-dot" id="progressDot"></div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="ctrl-btn" onclick="prevTrack()">⏮</button>
+            <button class="ctrl-btn play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+            <button class="ctrl-btn" onclick="nextTrack()">⏭</button>
+        </div>
+        <div class="volume-row">
+            <span class="vol-icon" onclick="muteToggle()">🔈</span>
+            <input type="range" id="volumeSlider" min="0" max="100" value="80" oninput="changeVolume(this.value)">
+            <span class="vol-icon">🔊</span>
+        </div>
+    </div>
 
-DB_FILE = "music_db.json"
+    <div class="section-title">ТРЕКИ</div>
+    <div class="track-list" id="trackList">
+        <div class="empty-state">
+            <div class="icon">🎵</div>
+            <p>Загрузка...</p>
+        </div>
+    </div>
 
-def load_db():
-    if os.path.exists(DB_FILE):
-        with open(DB_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return {"tracks": []}
+    <footer>POXOTI_NETU © 2026</footer>
 
-def save_db(db):
-    with open(DB_FILE, 'w', encoding='utf-8') as f:
-        json.dump(db, f, ensure_ascii=False, indent=2)
+    <audio id="audio" ontimeupdate="updateProgress()" onended="nextTrack()" onloadedmetadata="updateMeta()"></audio>
+</div>
 
-db = load_db()
-pending_covers = {}
+<script>
+const SERVER_URL = 'https://worker-production-1bf9.up.railway.app';
 
-def safe_filename(name):
-    name = name.encode('ascii', 'ignore').decode('ascii')
-    name = re.sub(r'[^a-zA-Z0-9_.-]', '_', name)
-    if not name or name.replace('_','').replace('.','') == '':
-        name = f"track_{int(time.time())}.mp3"
-    return name
+let tracks = [];
+let currentIndex = -1;
+let isPlaying = false;
+let prevVolume = 80;
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id,
-        "🎵 POXOTB MUSIC BOT\n\n"
-        "• Отправь MP3 — добавлю на сайт\n"
-        "• /delete номер — удалить\n"
-        "• /list — список треков\n\n"
-        "🌐 Сайт: bloodyyy-tech.github.io/music-site")
+const audio = document.getElementById('audio');
+const playBtn = document.getElementById('playBtn');
 
-@bot.message_handler(commands=['list'])
-def list_tracks(message):
-    tracks = db["tracks"]
-    if not tracks:
-        bot.send_message(message.chat.id, "📋 Треков пока нет.")
-        return
-    text = "📋 ТРЕКИ:\n\n"
-    for i, t in enumerate(tracks):
-        cover_status = "🖼" if t.get("cover") else "🔤"
-        text += f"{i+1}. {cover_status} {t['title']} — {t['artist']} ({t.get('uploader','?')})\n"
-    text += "\nУдалить: /delete номер"
-    bot.send_message(message.chat.id, text)
+(function createPetals() {
+    const container = document.getElementById('petalsContainer');
+    const petals = ['🌸', '💮', '🌺'];
+    for (let i = 0; i < 25; i++) {
+        const petal = document.createElement('div');
+        petal.className = 'petal';
+        petal.textContent = petals[Math.floor(Math.random() * petals.length)];
+        petal.style.left = Math.random() * 100 + '%';
+        petal.style.animationDuration = (8 + Math.random() * 15) + 's';
+        petal.style.animationDelay = Math.random() * 15 + 's';
+        petal.style.fontSize = (12 + Math.random() * 20) + 'px';
+        container.appendChild(petal);
+    }
+})();
 
-@bot.message_handler(commands=['delete'])
-def delete_track(message):
-    parts = message.text.split()
-    if len(parts) < 2:
-        bot.send_message(message.chat.id, "Формат: /delete номер")
-        return
-    try:
-        num = int(parts[1]) - 1
-        tracks = db["tracks"]
-        if num < 0 or num >= len(tracks):
-            bot.send_message(message.chat.id, "❌ Неверный номер.")
-            return
-        track = tracks[num]
-        fp = os.path.join(MUSIC_DIR, track['file'])
-        if os.path.exists(fp):
-            os.remove(fp)
-        if track.get('cover'):
-            cp = os.path.join(COVERS_DIR, track['cover'])
-            if os.path.exists(cp):
-                os.remove(cp)
-        del tracks[num]
-        save_db(db)
-        bot.send_message(message.chat.id, f"✅ Удалён: {track['title']}")
-    except Exception as e:
-        bot.send_message(message.chat.id, f"❌ Ошибка: {e}")
+function uploadTrack() {
+    const fileInput = document.getElementById('uploadFile');
+    const coverInput = document.getElementById('uploadCover');
+    const title = document.getElementById('uploadTitle').value.trim();
+    const artist = document.getElementById('uploadArtist').value.trim();
+    const status = document.getElementById('uploadStatus');
 
-@bot.message_handler(content_types=['audio'])
-def handle_audio(message):
-    try:
-        fi = bot.get_file(message.audio.file_id)
-        fn = message.audio.file_name or f"track_{int(time.time())}.mp3"
-        title = message.caption or message.audio.title or fn.replace('.mp3','')
-        artist = message.audio.performer or "Неизвестен"
-        dur = message.audio.duration or 0
-        uploader = message.from_user.first_name or "неизвестен"
-        data = bot.download_file(fi.file_path)
-        safe = f"{int(time.time())}_{safe_filename(fn)}"
-        fp = os.path.join(MUSIC_DIR, safe)
-        with open(fp, 'wb') as f:
-            f.write(data)
-        tid = str(int(time.time()))
-        track = {"id": tid, "title": title, "artist": artist, "file": safe, "cover": None, "duration": int(dur), "time": datetime.now().strftime("%Y-%m-%d %H:%M"), "uploader": uploader}
-        db["tracks"].insert(0, track)
-        save_db(db)
-        pending_covers[message.from_user.id] = tid
-        m = int(dur // 60) if dur else 0
-        s = int(dur % 60) if dur else 0
-        markup = telebot.types.InlineKeyboardMarkup()
-        markup.add(telebot.types.InlineKeyboardButton("🖼 Отправить обложку", callback_data=f"cover_{tid}"), telebot.types.InlineKeyboardButton("⏭ Пропустить", callback_data=f"skipcover_{tid}"))
-        bot.send_message(message.chat.id, f"✅ Трек добавлен!\n\n🎵 {title}\n👤 {artist}\n⏱ {m}:{s:02d}\n📤 Загрузил: {uploader}\n\nХочешь добавить обложку?", reply_markup=markup)
-    except Exception as e:
-        bot.send_message(message.chat.id, f"❌ Ошибка: {e}")
+    if (!fileInput.files[0]) { status.textContent = '❌ Выбери MP3'; return; }
+    if (!title) { status.textContent = '❌ Введи название'; return; }
 
-@bot.message_handler(content_types=['document'])
-def handle_document(message):
-    if not message.document.mime_type:
-        return
-    if 'audio' in message.document.mime_type:
-        try:
-            fi = bot.get_file(message.document.file_id)
-            fn = message.document.file_name or f"track_{int(time.time())}.mp3"
-            title = message.caption or fn.replace('.mp3','')
-            uploader = message.from_user.first_name or "неизвестен"
-            data = bot.download_file(fi.file_path)
-            safe = f"{int(time.time())}_{safe_filename(fn)}"
-            fp = os.path.join(MUSIC_DIR, safe)
-            with open(fp, 'wb') as f:
-                f.write(data)
-            tid = str(int(time.time()))
-            track = {"id": tid, "title": title, "artist": "Неизвестен", "file": safe, "cover": None, "duration": 0, "time": datetime.now().strftime("%Y-%m-%d %H:%M"), "uploader": uploader}
-            db["tracks"].insert(0, track)
-            save_db(db)
-            pending_covers[message.from_user.id] = tid
-            markup = telebot.types.InlineKeyboardMarkup()
-            markup.add(telebot.types.InlineKeyboardButton("🖼 Отправить обложку", callback_data=f"cover_{tid}"), telebot.types.InlineKeyboardButton("⏭ Пропустить", callback_data=f"skipcover_{tid}"))
-            bot.send_message(message.chat.id, f"✅ Трек добавлен!\n\n🎵 {title}\n👤 Неизвестен\n📤 Загрузил: {uploader}\n\nХочешь добавить обложку?", reply_markup=markup)
-        except Exception as e:
-            bot.send_message(message.chat.id, f"❌ Ошибка: {e}")
-    elif 'image' in message.document.mime_type:
-        handle_photo(message)
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    status.textContent = '⏳ Загрузка...';
 
-@bot.message_handler(content_types=['photo'])
-def handle_photo(message):
-    uid = message.from_user.id
-    tid = pending_covers.get(uid)
-    if not tid:
-        return
-    try:
-        fi = bot.get_file(message.photo[-1].file_id)
-        data = bot.download_file(fi.file_path)
-        cn = f"cover_{tid}.jpg"
-        cp = os.path.join(COVERS_DIR, cn)
-        with open(cp, 'wb') as f:
-            f.write(data)
-        for t in db["tracks"]:
-            if t["id"] == tid:
-                t["cover"] = cn
-                break
-        save_db(db)
-        del pending_covers[uid]
-        bot.send_message(message.chat.id, "🖼 Обложка добавлена!")
-    except Exception as e:
-        bot.send_message(message.chat.id, f"❌ Ошибка: {e}")
+    reader.onload = function(e) {
+        const base64 = e.target.result.split(',')[1];
+        const payload = {
+            title: title,
+            artist: artist || 'Неизвестен',
+            file: base64,
+            filename: file.name
+        };
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback_handler(call):
-    uid = call.from_user.id
-    d = call.data
-    if d.startswith("skipcover_"):
-        tid = d.replace("skipcover_", "")
-        if pending_covers.get(uid) == tid:
-            del pending_covers[uid]
-        bot.edit_message_text("✅ Сохранён.", call.message.chat.id, call.message.message_id)
-    elif d.startswith("cover_"):
-        bot.answer_callback_query(call.id, "Отправь картинку")
+        if (coverInput.files[0]) {
+            const coverReader = new FileReader();
+            coverReader.onload = function(ce) {
+                payload.cover = ce.target.result.split(',')[1];
+                payload.coverFilename = coverInput.files[0].name;
+                sendPayload(payload);
+            };
+            coverReader.readAsDataURL(coverInput.files[0]);
+        } else {
+            sendPayload(payload);
+        }
+    };
 
-@bot.message_handler(commands=['admin'])
-def admin(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-    tracks = db["tracks"]
-    text = f"📊 ТРЕКОВ: {len(tracks)}\n\n"
-    for i, t in enumerate(tracks[:10]):
-        cover_status = "🖼" if t.get("cover") else "🔤"
-        text += f"{i+1}. {cover_status} {t['title']} — {t['artist']} ({t.get('uploader','?')})\n"
-    if len(tracks) > 10:
-        text += f"\n... и ещё {len(tracks)-10}"
-    bot.send_message(message.chat.id, text)
+    reader.readAsDataURL(file);
+}
 
-class MusicServer(BaseHTTPRequestHandler):
-    def do_GET(self):
-        path = urlparse(self.path).path
-        if path == '/api/tracks':
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(db, ensure_ascii=False).encode('utf-8'))
-            return
-        for prefix, folder, mime in [('/music/', MUSIC_DIR, 'audio/mpeg'), ('/covers/', COVERS_DIR, 'image/jpeg')]:
-            if path.startswith(prefix):
-                fn = path.replace(prefix, '')
-                fp = os.path.join(folder, fn)
-                if os.path.exists(fp):
-                    ext = fn.rsplit('.', 1)[-1].lower()
-                    mime = 'audio/mp4' if ext == 'm4a' else 'audio/mpeg' if prefix == '/music/' else mime
-                    self.send_response(200)
-                    self.send_header('Content-Type', mime)
-                    self.send_header('Access-Control-Allow-Origin', '*')
-                    self.send_header('Cross-Origin-Resource-Policy', 'cross-origin')
-                    self.send_header('Accept-Ranges', 'bytes')
-                    self.send_header('Content-Length', str(os.path.getsize(fp)))
-                    self.end_headers()
-                    with open(fp, 'rb') as f:
-                        self.wfile.write(f.read())
-                    return
-                else:
-                    self.send_response(404)
-                    self.send_header('Access-Control-Allow-Origin', '*')
-                    self.end_headers()
-                    return
-        self.send_response(200)
-        self.send_header('Content-Type', 'text/plain')
-        self.end_headers()
-        self.wfile.write(b'POXOTB Music Server')
+function sendPayload(payload) {
+    const status = document.getElementById('uploadStatus');
+    fetch(`${SERVER_URL}/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            status.textContent = '✅ Загружено!';
+            document.getElementById('uploadFile').value = '';
+            document.getElementById('uploadCover').value = '';
+            document.getElementById('uploadTitle').value = '';
+            document.getElementById('uploadArtist').value = '';
+            loadTracks();
+        } else {
+            status.textContent = '❌ Ошибка: ' + (data.error || 'неизвестно');
+        }
+    })
+    .catch(e => { status.textContent = '❌ Ошибка соединения'; });
+}
 
-    def do_POST(self):
-        path = urlparse(self.path).path
-        if path == '/upload':
-            try:
-                cl = int(self.headers.get('Content-Length', 0))
-                body = self.rfile.read(cl)
-                data = json.loads(body.decode('utf-8'))
-                title = data.get('title', 'Без названия')
-                artist = data.get('artist', 'Неизвестен')
-                file_b64 = data.get('file', '')
-                file_name = data.get('filename', 'track.mp3')
-                cover_b64 = data.get('cover', '')
-                cover_filename = data.get('coverFilename', '')
+function addCover(trackId) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function() {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64 = e.target.result.split(',')[1];
+            fetch(`${SERVER_URL}/add_cover`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: trackId, cover: base64 })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    loadTracks();
+                    if (currentIndex >= 0 && tracks[currentIndex]?.id === trackId) {
+                        updateCover(currentIndex);
+                    }
+                }
+            });
+        };
+        reader.readAsDataURL(input.files[0]);
+    };
+    input.click();
+}
 
-                file_data = base64.b64decode(file_b64)
-                safe = f"{int(time.time())}_{safe_filename(file_name)}"
-                fp = os.path.join(MUSIC_DIR, safe)
-                with open(fp, 'wb') as f:
-                    f.write(file_data)
+async function loadTracks() {
+    try {
+        const resp = await fetch(`${SERVER_URL}/api/tracks`);
+        const data = await resp.json();
+        tracks = data.tracks || [];
+        renderTracks();
+        if (tracks.length > 0 && currentIndex === -1) {
+            document.getElementById('nowTitle').textContent = tracks[0].title;
+            document.getElementById('nowArtist').textContent = tracks[0].artist;
+            document.getElementById('nowUploader').textContent = 'выложил: ' + (tracks[0].uploader || 'неизвестен');
+            updateCover(0);
+        }
+    } catch (e) {
+        document.getElementById('trackList').innerHTML = '<div class="empty-state"><div class="icon">🔌</div><p>Сервер недоступен</p></div>';
+    }
+}
 
-                cover_name = None
-                if cover_b64:
-                    cover_data = base64.b64decode(cover_b64)
-                    cn = f"cover_{int(time.time())}_{safe_filename(cover_filename or 'cover.jpg')}"
-                    cp = os.path.join(COVERS_DIR, cn)
-                    with open(cp, 'wb') as f:
-                        f.write(cover_data)
-                    cover_name = cn
+function playTrack(index) {
+    if (index < 0 || index >= tracks.length) return;
+    currentIndex = index;
+    const track = tracks[index];
+    const url = `${SERVER_URL}/music/${track.file}`;
+    const ext = track.file.split('.').pop().toLowerCase();
+    const mimeType = ext === 'm4a' ? 'audio/mp4' : 'audio/mpeg';
+    
+    audio.innerHTML = '';
+    const source = document.createElement('source');
+    source.src = url;
+    source.type = mimeType;
+    audio.appendChild(source);
+    audio.load();
+    audio.play();
+    
+    isPlaying = true;
+    playBtn.textContent = '⏸';
+    document.getElementById('nowTitle').textContent = track.title;
+    document.getElementById('nowArtist').textContent = track.artist;
+    document.getElementById('nowUploader').textContent = 'выложил: ' + (track.uploader || 'неизвестен');
+    updateCover(index);
+    updateMeta();
+    renderTracks();
+    document.getElementById('nowCover').classList.add('playing');
+}
 
-                track = {"id": str(int(time.time())), "title": title, "artist": artist, "file": safe, "cover": cover_name, "duration": 0, "time": datetime.now().strftime("%Y-%m-%d %H:%M"), "uploader": "сайт"}
-                db["tracks"].insert(0, track)
-                save_db(db)
+function togglePlay() {
+    if (tracks.length === 0) return;
+    if (currentIndex === -1) { playTrack(0); return; }
+    if (isPlaying) {
+        audio.pause(); isPlaying = false; playBtn.textContent = '▶';
+        document.getElementById('nowCover').classList.remove('playing');
+    } else {
+        audio.play(); isPlaying = true; playBtn.textContent = '⏸';
+        document.getElementById('nowCover').classList.add('playing');
+    }
+}
 
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"ok": True}).encode())
-                return
-            except Exception as e:
-                self.send_response(400)
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
-                return
+function nextTrack() { if (tracks.length === 0) return; let next = currentIndex + 1; if (next >= tracks.length) next = 0; playTrack(next); }
+function prevTrack() { if (tracks.length === 0) return; let prev = currentIndex - 1; if (prev < 0) prev = tracks.length - 1; playTrack(prev); }
 
-        if path == '/add_cover':
-            try:
-                cl = int(self.headers.get('Content-Length', 0))
-                body = self.rfile.read(cl)
-                data = json.loads(body.decode('utf-8'))
-                tid = data.get('id')
-                cover_b64 = data.get('cover', '')
-                cover_data = base64.b64decode(cover_b64)
-                cn = f"cover_{tid}.jpg"
-                cp = os.path.join(COVERS_DIR, cn)
-                with open(cp, 'wb') as f:
-                    f.write(cover_data)
-                for t in db["tracks"]:
-                    if t["id"] == tid:
-                        t["cover"] = cn
-                        break
-                save_db(db)
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"ok": True}).encode())
-                return
-            except Exception as e:
-                self.send_response(400)
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
-                return
+function updateMeta() {
+    if (currentIndex >= 0 && tracks[currentIndex]) {
+        if (!tracks[currentIndex].duration && audio.duration) {
+            tracks[currentIndex].duration = Math.floor(audio.duration);
+        }
+        document.getElementById('nowDuration').textContent = formatDuration(tracks[currentIndex].duration || Math.floor(audio.duration));
+    }
+}
 
-        self.send_response(404)
-        self.end_headers()
+function updateProgress() {
+    const pct = (audio.currentTime / audio.duration) * 100 || 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressDot').style.left = pct + '%';
+}
 
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', '*')
-        self.end_headers()
+function seek(e) {
+    const rect = e.target.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = pct * audio.duration;
+}
 
-def run_server():
-    server = HTTPServer((HOST, PORT), MusicServer)
-    print(f"🌐 Сервер: http://{HOST}:{PORT}")
-    server.serve_forever()
+function changeVolume(val) { audio.volume = val / 100; prevVolume = val; }
 
-if __name__ == '__main__':
-    print("🎵 POXOTB MUSIC BOT v15")
-    threading.Thread(target=run_server, daemon=True).start()
-    print(f"🤖 Бот запущен")
-    print(f"🌐 Сервер на порту {PORT}")
-    while True:
-        try:
-            bot.polling(none_stop=True)
-        except Exception as e:
-            print(f"⚠️ Ошибка: {e}")
-            time.sleep(5)
+function muteToggle() {
+    if (audio.volume > 0) { audio.volume = 0; document.getElementById('volumeSlider').value = 0; }
+    else { audio.volume = prevVolume / 100; document.getElementById('volumeSlider').value = prevVolume; }
+}
+
+function updateCover(index) {
+    const track = tracks[index];
+    const cover = document.getElementById('nowCover');
+    if (track.cover) {
+        cover.style.backgroundImage = `url(${SERVER_URL}/covers/${track.cover})`;
+        cover.style.backgroundSize = 'cover';
+        cover.style.backgroundPosition = 'center';
+        cover.textContent = '';
+    } else {
+        cover.style.backgroundImage = '';
+        cover.textContent = track.title.charAt(0).toUpperCase() || '🎵';
+    }
+}
+
+function renderTracks() {
+    const container = document.getElementById('trackList');
+    if (tracks.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">🎵</div><p>Пока нет треков</p><p style="font-size:0.75em;">Загрузи через форму выше или через бота</p></div>';
+        return;
+    }
+    container.innerHTML = tracks.map((track, index) => {
+        const coverStyle = track.cover ? `background-image:url(${SERVER_URL}/covers/${track.cover});background-size:cover;background-position:center;color:transparent` : '';
+        const coverLetter = track.cover ? '' : (track.title.charAt(0).toUpperCase() || '🎵');
+        return `
+        <div class="track-item ${index === currentIndex && isPlaying ? 'active' : ''}">
+            <div class="track-num" onclick="playTrack(${index})">${index === currentIndex && isPlaying ? '' : String(index+1)}</div>
+            <div class="track-cover-sm" style="${coverStyle}" onclick="playTrack(${index})">${coverLetter}</div>
+            <div class="track-info" onclick="playTrack(${index})">
+                <div class="track-name">${track.title}</div>
+                <div class="track-meta">
+                    <span class="track-artist">${track.artist}</span>
+                    <span class="track-uploader">• ${track.uploader || 'неизвестен'}</span>
+                </div>
+            </div>
+            <div class="track-dur" onclick="playTrack(${index})">${formatDuration(track.duration)}</div>
+            <div class="track-actions">
+                <button class="btn-small" onclick="event.stopPropagation();addCover('${track.id}')">🖼</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function formatDuration(seconds) {
+    if (!seconds || seconds === 0) {
+        if (currentIndex >= 0 && tracks[currentIndex] && audio.duration) seconds = Math.floor(audio.duration);
+        else return '--:--';
+    }
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+loadTracks();
+</script>
+</body>
+</html>
