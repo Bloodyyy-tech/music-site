@@ -32,7 +32,6 @@
             pointer-events: none;
             z-index: 0;
         }
-        /* Плавающие лепестки */
         .petal {
             position: fixed;
             pointer-events: none;
@@ -57,7 +56,6 @@
         .header {
             text-align: center;
             padding: 50px 0 40px;
-            position: relative;
         }
         .header-badge {
             display: inline-block;
@@ -92,6 +90,80 @@
             background: #1a1a1a;
             margin: 25px auto 0;
         }
+
+        /* Форма загрузки */
+        .upload-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.04);
+        }
+        .upload-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1em;
+            letter-spacing: 3px;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+        }
+        .upload-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .upload-section input[type="text"] {
+            padding: 12px 16px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            width: 180px;
+        }
+        .upload-section input[type="text"]:focus {
+            border-color: #1a1a1a;
+        }
+        .upload-section input[type="file"] {
+            display: none;
+        }
+        .btn {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-outline {
+            background: #fff;
+            color: #1a1a1a;
+            border: 1px solid #1a1a1a;
+        }
+        .btn-outline:hover {
+            background: #f5f5f5;
+        }
+        .btn-dark {
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .btn-dark:hover {
+            background: #333;
+        }
+        .upload-status {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        /* Плеер */
         .player-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -101,7 +173,6 @@
             text-align: center;
             box-shadow: 0 4px 30px rgba(0,0,0,0.04);
         }
-        /* Обложка с тенью */
         .cover-wrap {
             position: relative;
             width: 240px;
@@ -314,8 +385,6 @@
             color: #999;
             margin-top: 2px;
         }
-        .track-artist { }
-        .track-uploader { color: #bbb; }
         .track-dur { font-size: 0.8em; color: #bbb; flex-shrink: 0; }
         .empty-state { text-align: center; padding: 70px 20px; color: #ccc; }
         .empty-state .icon { font-size: 4em; margin-bottom: 15px; }
@@ -334,6 +403,8 @@
             .player-card { padding: 25px 18px; }
             .controls { gap: 15px; }
             .ctrl-btn.play-btn { width: 55px; height: 55px; font-size: 1.5em; }
+            .upload-row { flex-direction: column; }
+            .upload-section input[type="text"] { width: 100%; }
         }
     </style>
 </head>
@@ -349,6 +420,20 @@
         <p class="sub">загружай и слушай</p>
     </div>
 
+    <!-- Загрузка -->
+    <div class="upload-section">
+        <h3>📤 ЗАГРУЗИТЬ ТРЕК</h3>
+        <div class="upload-row">
+            <input type="text" id="uploadTitle" placeholder="Название трека">
+            <input type="text" id="uploadArtist" placeholder="Твой ник">
+            <input type="file" id="uploadFile" accept="audio/*">
+            <button class="btn btn-outline" onclick="document.getElementById('uploadFile').click()">📁 Выбрать MP3</button>
+            <button class="btn btn-dark" onclick="uploadTrack()">⬆ Загрузить</button>
+        </div>
+        <div class="upload-status" id="uploadStatus"></div>
+    </div>
+
+    <!-- Плеер -->
     <div class="player-card">
         <div class="cover-wrap">
             <div class="cover" id="nowCover">🎵</div>
@@ -403,7 +488,7 @@ let prevVolume = 80;
 const audio = document.getElementById('audio');
 const playBtn = document.getElementById('playBtn');
 
-// Лепестки сакуры
+// Лепестки
 function createPetals() {
     const container = document.getElementById('petalsContainer');
     const petals = ['🌸', '💮', '🌺'];
@@ -420,6 +505,56 @@ function createPetals() {
 }
 createPetals();
 
+// ============================================
+// ЗАГРУЗКА ТРЕКА НА СЕРВЕР
+// ============================================
+function uploadTrack() {
+    const fileInput = document.getElementById('uploadFile');
+    const title = document.getElementById('uploadTitle').value.trim();
+    const artist = document.getElementById('uploadArtist').value.trim();
+    const status = document.getElementById('uploadStatus');
+
+    if (!fileInput.files[0]) {
+        status.textContent = '❌ Выбери файл';
+        return;
+    }
+    if (!title) {
+        status.textContent = '❌ Введи название';
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', title);
+    formData.append('artist', artist || 'Неизвестен');
+
+    status.textContent = '⏳ Загрузка...';
+
+    fetch(`${SERVER_URL}/upload`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            status.textContent = '✅ Загружено!';
+            fileInput.value = '';
+            document.getElementById('uploadTitle').value = '';
+            document.getElementById('uploadArtist').value = '';
+            loadTracks();
+        } else {
+            status.textContent = '❌ Ошибка: ' + (data.error || 'неизвестно');
+        }
+    })
+    .catch(e => {
+        status.textContent = '❌ Ошибка соединения';
+    });
+}
+
+// ============================================
+// ПЛЕЕР
+// ============================================
 async function loadTracks() {
     try {
         const resp = await fetch(`${SERVER_URL}/api/tracks`);
@@ -547,7 +682,7 @@ function updateCover(index) {
 function renderTracks() {
     const container = document.getElementById('trackList');
     if (tracks.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="icon">🎵</div><p>Пока нет треков</p><p style="font-size:0.75em;">Отправь MP3 боту в Telegram</p></div>';
+        container.innerHTML = '<div class="empty-state"><div class="icon">🎵</div><p>Пока нет треков</p><p style="font-size:0.75em;">Загрузи через форму выше или через бота</p></div>';
         return;
     }
     container.innerHTML = tracks.map((track, index) => {
